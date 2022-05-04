@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useCallback, useRef } from 'react'
 import styled from 'styled-components'
 import * as yup from 'yup'
+import Input from './components/common/Input/Input'
 
 const schema = yup.object().shape({
   username: yup.string().required().matches(/^\S*$/),
@@ -27,18 +28,27 @@ const StyledForm = styled.form`
 `
 
 function App() {
-  const [userName, setUserName] = useState('')
-  const [userPassword, setUserPassword] = useState('')
-
-  //handle prevent default
+  console.log('re-render Form')
+  const login = useRef({
+    userName: '',
+    userPassword: '',
+  })
+  console.log(login)
+  const checkValue = useCallback((value, type) => {
+    login.current = {
+      ...login.current,
+      [type]: value,
+    }
+    console.log(login)
+  }, [])
   const handlePreventDefault = (e) => {
     e.preventDefault()
   }
   const check = async () => {
     await schema
       .isValid({
-        username: userName,
-        password: userPassword,
+        username: login.current.userName,
+        password: login.current.userPassword,
       })
       .then((valid) => {
         if (valid) {
@@ -51,22 +61,18 @@ function App() {
   return (
     <div className="App">
       <StyledForm onSubmit={handlePreventDefault}>
-        <div>
-          <label htmlFor="">User Name</label>
-          <input
-            type="text"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-          />
-        </div>
-        <div>
-          <label htmlFor="">Password</label>
-          <input
-            type="text"
-            value={userPassword}
-            onChange={(e) => setUserPassword(e.target.value)}
-          />
-        </div>
+        <Input
+          label="User name"
+          value={login}
+          checkValue={checkValue}
+          type="userName"
+        />
+        <Input
+          label="Password"
+          value={login}
+          checkValue={checkValue}
+          type="userPassword"
+        />
         <div>
           <button onClick={check}>Submit</button>
         </div>
